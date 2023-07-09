@@ -9,36 +9,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = mysqli_real_escape_string($conn, $_POST['password']);
     $registrationDate = date('Y-m-d');
 
-    $sql = "SELECT * FROM tasklist.users WHERE login = '$login' AND password = '$password'";
 
-
+    $sql = "SELECT * FROM tasklist.users WHERE login = '$login'";
     $result = mysqli_query($conn, $sql);
 
-    $_SESSION['login'] = $_POST['login'];
-    $_SESSION['password'] = $_POST['password'];
+    if (mysqli_num_rows($result) == 0) {
+        $sql = "INSERT INTO tasklist.users (login, password, created_at) VALUES ('$login', '$password', '$registrationDate')";
+        mysqli_query($conn, $sql);
 
-    if (mysqli_num_rows($result) == 1) {
+        // Получаем user_id только что созданного пользователя
+        $user_id = mysqli_insert_id($conn);
+
+        // Сохраняем user_id в сессии
+        $_SESSION['user_id'] = $user_id;
+
+        header("location: task.php");
+    } else {
         // авторизуем пользователя
         $_SESSION['login'] = $login;
         $_SESSION['password'] = $password;
-        header("location: task.php"); // переходим на страницу task
-    } else {
-        $sql = "INSERT INTO tasklist.users (login, password, created_at) VALUES ('$login', '$password', '$registrationDate')";
-        //header("location: task.php"); // переходим на страницу task
+
+        header("location: task.php");
     }
-    var_dump($sql);
     mysqli_close($conn); // закрываем соединение с базой данных
 }
-
-
 ?>
 
-<?php include("includes/header.php")?>
-<form method="POST" id="signin" action="">
-    <input type="text" id="login" name="login" placeholder="login" required autocomplete="current-login">
-    <input type="password" id="password" name="password" placeholder="password" required autocomplete="current-password">
-    <button type="submit">Отправить</button>
+<?php include("includes/header.php") ?>
+    <form method="POST" id="signin" action="">
+        <input type="text" id="login" name="login" placeholder="login" required autocomplete="current-login">
+        <input type="password" id="password" name="password" placeholder="password" required
+               autocomplete="current-password">
+        <button type="submit">Отправить</button>
 
-</form>
-</div>
-<?php include("includes/footer.php")?>
+    </form>
+    </div>
+</body>
+</html>

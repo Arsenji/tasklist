@@ -9,12 +9,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = mysqli_real_escape_string($conn, $_POST['password']);
     $registrationDate = date('Y-m-d');
 
+    $hash_password = password_hash($password, PASSWORD_BCRYPT);
+
 
     $sql = "SELECT * FROM tasklist.users WHERE login = '$login'";
     $result = mysqli_query($conn, $sql);
 
     if (mysqli_num_rows($result) == 0) {
-        $sql = "INSERT INTO tasklist.users (login, password, created_at) VALUES ('$login', '$password', '$registrationDate')";
+        $sql = "INSERT INTO tasklist.users (login, password, created_at) VALUES ('$login', '$hash_password', '$registrationDate')";
         mysqli_query($conn, $sql);
 
         // Получаем user_id только что созданного пользователя
@@ -36,13 +38,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 ?>
 
 <?php include("includes/header.php") ?>
-    <form method="POST" id="signin" action="">
-        <input type="text" id="login" name="login" placeholder="login" required autocomplete="current-login">
-        <input type="password" id="password" name="password" placeholder="password" required
-               autocomplete="current-password">
-        <button type="submit">Отправить</button>
+<form method="POST" id="signin" action="">
+    <input type="text" id="login" name="login" placeholder="login" required autocomplete="current-login">
+    <input type="password" id="password" name="password" placeholder="password" required
+           autocomplete="current-password">
+    <button type="submit">Отправить</button>
 
-    </form>
-    </div>
+</form>
+</div>
 </body>
 </html>

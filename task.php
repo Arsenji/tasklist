@@ -8,8 +8,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $description = mysqli_real_escape_string($conn, $_POST['description']);
     $created_at = date('Y-m-d');
     $status = 'Невыполнено';
-    if (!empty($user_id)) {
+
+    if (!empty($user_id) && !empty($description)) {
         $sql = "INSERT INTO tasklist.tasks (user_id, description, created_at, status) VALUES ('$user_id', '$description', '$created_at', '$status')";
+        mysqli_query($conn, $sql);
+    }
+
+    if (isset($_POST['delete_all']) && !empty($description)) {
+        $sql = "DELETE FROM tasks WHERE user_id = '$user_id'";
         mysqli_query($conn, $sql);
     }
 }
@@ -36,36 +42,32 @@ if (isset($_GET['delete_task_id'])) {
 }
 
 // Обработка удаления всех задач
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (isset($_POST['deleteAll'])) {
-        require_once("includes/connection.php");
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_all'])) {
+    require_once("includes/connection.php");
 
-        $user_id = $_SESSION['user_id'];
+    $user_id = $_SESSION['user_id'];
 
-        $sql = "DELETE FROM tasks WHERE user_id = '$user_id'";
-        mysqli_query($conn, $sql);
-    }
+    $sql = "DELETE FROM tasks WHERE user_id = '$user_id'";
+    mysqli_query($conn, $sql);
 }
 ?>
 
 <!DOCTYPE html>
 <html>
 <head>
+    <link href="includes/style.css" rel="stylesheet">
     <title>Task List</title>
-    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="container">
     <h2>Мои задачи</h2>
 
-    <form method="post" action="">
-        <input type="text" name="description" placeholder="Введите задачу" required>
-        <button type="submit">Добавить задачу</button>
+    <form method="POST" action="">
+        <input type="text" name="description" placeholder="Введите задачу">
+        <button type="submit" name="addTask" id="addTask">Добавить задачу</button>
+        <button type="submit" name="delete_all">Удалить все</button>
     </form>
 
-    <form method="post" action="">
-        <button type="submit" name="deleteAll">Удалить все</button>
-    </form>
 
     <table>
         <tr>
@@ -86,11 +88,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             echo "<tr>";
             echo "<td>" . $row['description'] . "</td>";
             echo "<td>";
+            echo ($row['status'] == 'Выполнено') ? '<span class="status-circle completed"></span>' : '<span class="status-circle not-completed"></span>';
             echo $row['status'];
             echo "</td>";
             echo "<td>";
-            echo '<a href="task.php?task_id=' . $row['id'] . '&status=' . (($row['status'] == 'Выполнено') ? 'Невыполнено' : 'Выполнено') . '">' . (($row['status'] == 'Выполнено') ? 'Невыполнено' : 'Выполнено') . '</a>';
-            echo '<a href="task.php?delete_task_id=' . $row['id'] . '">Удалить</a>';
+            echo '<a class="btn" href="task.php?task_id=' . $row['id'] . '&status=' . (($row['status'] == 'Выполнено') ? 'Невыполнено' : 'Выполнено') . '">' . (($row['status'] == 'Выполнено') ? 'Невыполнено' : 'Выполнено') . '</a>';
+            echo '<a class="delete" href="task.php?delete_task_id=' . $row['id'] . '">Удалить</a>';
             echo "</td>";
             echo "</tr>";
         }

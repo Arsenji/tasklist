@@ -41,6 +41,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         header("location: task.php");
         exit();
     }
+    $authenticated =true;
+    $_SESSION['authenticated'] = $authenticated;
 
     mysqli_close($conn); // закрываем соединение с базой данных
 }

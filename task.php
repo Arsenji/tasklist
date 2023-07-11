@@ -1,5 +1,13 @@
 <?php
 session_start();
+
+// Проверяем состояние аутентификации пользователя
+if (!isset($_SESSION['authenticated']) || $_SESSION['authenticated'] !== true) {
+    // Пользователь не аутентифицирован, перенаправляем на страницу входа или другую страницу
+    header("location: index.php");
+    exit();
+}
+
 // Обработка добавления новой задачи
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     require_once("includes/connection.php");

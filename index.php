@@ -1,39 +1,48 @@
 <?php
 session_start(); // начинаем сессию
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+require_once("includes/connection.php");
 
-    require_once("includes/connection.php");
+// получаем логин и пароль из формы
+$login = mysqli_real_escape_string($conn, $_POST['login']);
+$password = mysqli_real_escape_string($conn, $_POST['password']);
+$registrationDate = date('Y-m-d');
 
-    // получаем email и пароль из формы, указываем дату
-    $login = mysqli_real_escape_string($conn, $_POST['login']);
-    $password = mysqli_real_escape_string($conn, $_POST['password']);
-    $registrationDate = date('Y-m-d');
+$sql = "SELECT * FROM tasklist.users WHERE login = '$login'";
+$result = mysqli_query($conn, $sql);
 
-    $hash_password = password_hash($password, PASSWORD_BCRYPT);
+if (mysqli_num_rows($result) == 1) {
+$row = mysqli_fetch_assoc($result);
+$stored_hash = $row['password'];
 
+if (password_verify($password, $stored_hash)) {
+// Авторизация успешна
+$_SESSION['login'] = $login;
+$_SESSION['password'] = $stored_hash;
+header("location: task.php");
+exit();
+} else {
+// Неправильный пароль
+echo "Неправильный пароль.";
+}
+} else {
+// Пользователь не найден, регистрируем нового пользователя
+$hash_password = password_hash($password, PASSWORD_BCRYPT);
+$sql = "INSERT INTO tasklist.users (login, password, created_at) VALUES ('$login', '$hash_password', '$registrationDate')";
+mysqli_query($conn, $sql);
 
-    $sql = "SELECT * FROM tasklist.users WHERE login = '$login'";
-    $result = mysqli_query($conn, $sql);
+// Получаем user_id только что созданного пользователя
+$user_id = mysqli_insert_id($conn);
 
-    if (mysqli_num_rows($result) == 0) {
-        $sql = "INSERT INTO tasklist.users (login, password, created_at) VALUES ('$login', '$hash_password', '$registrationDate')";
-        mysqli_query($conn, $sql);
+// Сохраняем user_id в сессии
+$_SESSION['user_id'] = $user_id;
 
-        // Получаем user_id только что созданного пользователя
-        $user_id = mysqli_insert_id($conn);
+header("location: task.php");
+exit();
+}
 
-        // Сохраняем user_id в сессии
-        $_SESSION['user_id'] = $user_id;
-
-        header("location: task.php");
-    } else {
-        // авторизуем пользователя
-        $_SESSION['login'] = $login;
-        $_SESSION['password'] = $password;
-
-        header("location: task.php");
-    }
-    mysqli_close($conn); // закрываем соединение с базой данных
+mysqli_close($conn); // закрываем соединение с базой данных
 }
 ?>
 

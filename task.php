@@ -21,7 +21,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 
 // Обработка изменения статуса задачи
-if (isset($_GET['task_id']) && isset($_GET['status'])) {
+if (isset($_GET['task_id']) && isset($_GET['status']) && isset($_SESSION['user_id'])) {
     require_once("includes/connection.php");
 
     $task_id = $_GET['task_id'];
@@ -32,7 +32,7 @@ if (isset($_GET['task_id']) && isset($_GET['status'])) {
 }
 
 // Обработка удаления задачи
-if (isset($_GET['delete_task_id'])) {
+if (isset($_GET['delete_task_id']) && isset($_SESSION['user_id'])) {
     require_once("includes/connection.php");
 
     $task_id = $_GET['delete_task_id'];
